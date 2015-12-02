@@ -176,6 +176,7 @@ for epoch = 1, opt.niter do
    end
    print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
             epoch, niter, epoch_tm:time().real))
-   torch.save('net_G.t7', net_G)
-   torch.save('net_D.t7', net_D)
+   paths.mkdir('checkpoints')
+   torch.save('checkpoints/net_G.t7', net_G)
+   torch.save('checkpoints/net_D.t7', net_D)
 end
