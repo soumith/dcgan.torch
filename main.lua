@@ -19,6 +19,9 @@ opt = {
    gpu = 1                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
 }
 
+-- one-line argument parser. parses enviroment variables to override the defaults
+for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
+
 opt.manualSeed = torch.random(1, 10000) -- fix seed
 print("Random Seed: " .. opt.manualSeed)
 torch.manualSeed(opt.manualSeed)
