@@ -105,6 +105,9 @@ local input = torch.Tensor(opt.batchSize, 3, opt.fineSize, opt.fineSize)
 local noise = torch.Tensor(opt.batchSize, nz)
 local label = torch.Tensor(opt.batchSize)
 local errD, errG
+local epoch_tm = torch.Timer()
+local tm = torch.Timer()
+local data_tm = torch.Timer()
 ----------------------------------------------------------------------------
 if opt.gpu > 0 then
    require 'cunn'
@@ -121,7 +124,9 @@ local fDx = function(x)
    gradParametersD:zero()
    -- get mini-batch of half real and half generated samples
    noise:normal() -- regenerate random noise
+   data_tm:reset(); data_tm:resume()
    local real = data:getBatch()
+   data_tm:stop()
    local fake = netG:forward(noise)
    input:narrow(1, 1, opt.batchSize / 2):copy(fake:narrow(1, 1, opt.batchSize / 2))
    label:fill(1)
@@ -151,14 +156,26 @@ end
 
 -- train
 for epoch = 1, opt.niter do
-   for i=1, math.min(data:size(), opt.ntrain), opt.batchSize do
+   epoch_tm:reset()
+
+   for i = 1, math.min(data:size(), opt.ntrain), opt.batchSize do
+      tm:reset()
       -- (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
       optim.sgd(fDx, parametersD, optimStateD)
 
       -- (2) Update G network: maximize log(D(G(z)))
       optim.sgd(fGx, parametersG, optimStateG)
 
-      -- print(tm:time().real)
-      tm:reset()
+      -- logging
+      if ((i-1) / opt.batchSize) % 10 == 0 then
+         print(('Epoch: [%d][%8d / %8d]\t Time: %.3f  DataTime: %.3f  '
+                   .. '  Err_G: %.4f  Err_D: %.4f'):format(
+               epoch, ((i-1) / opt.batchSize), math.min(data:size(), opt.ntrain),
+               tm:time().real, data_tm:time().real, errG, errD))
+      end
    end
+   print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
+            epoch, niter, epoch_tm:time().real))
+   torch.save('net_G.t7', net_G)
+   torch.save('net_D.t7', net_D)
 end
