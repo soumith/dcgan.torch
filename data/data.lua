@@ -14,8 +14,8 @@ function data.new(n, dataset_name, opt_)
    end
 
    local donkey_file
-   if dataset_name == 'imagenet' then
-      donkey_file = 'donkey_imagenet.lua'
+   if dataset_name == 'imagenet' or dataset_name == 'folder' then
+      donkey_file = 'donkey_folder.lua'
    elseif dataset_name == 'lsun' then
       donkey_file = 'donkey_lsun.lua'
       if n > 6 then n = 6 end -- lmdb complains beyond 6 donkeys. wtf.

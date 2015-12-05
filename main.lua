@@ -3,7 +3,7 @@ require 'nn'
 require 'optim'
 
 opt = {
-   dataset = 'lsun',      -- imagenet / lsun
+   dataset = 'lsun',      -- imagenet / lsun / folder
    batchSize = 64,
    loadSize = 96,
    fineSize = 64,
@@ -12,10 +12,13 @@ opt = {
    ndf = 64,              -- #  of discrim filters in first conv layer
    nThreads = 1,          -- #  of data loading threads to use
    niter = 25,            -- #  of iter at starting learning rate
+   optim = 'adam',        -- optimization method. adam / sgd
    lr = 0.0002,           -- initial learning rate for adam
-   beta1 = 0.5,              -- momentum term of adam
-   ntrain = 100000, -- math.huge,    -- #  of examples to train on. math.huge for full dataset
-   gpu = 1                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
+   beta1 = 0.5,           -- momentum term of adam
+   ntrain = math.huge,    -- #  of examples per epoch. math.huge for full dataset
+   display = true,         -- display samples while training
+   display_id = 10,        -- display window id.
+   gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
 }
 
 -- one-line argument parser. parses enviroment variables to override the defaults
@@ -129,7 +132,9 @@ end
 local parametersD, gradParametersD = netD:getParameters()
 local parametersG, gradParametersG = netG:getParameters()
 
-disp = dofile('/home/soumith/fbcode/deeplearning/experimental/shared/play_blocks/display.lua')
+if opt.display then
+    disp = dofile('/home/soumith/fbcode/deeplearning/experimental/shared/play_blocks/display.lua')
+end
 
 noise_vis = noise:clone()
 noise_vis:uniform(-1, 1)
@@ -198,17 +203,18 @@ for epoch = 1, opt.niter do
    for i = 1, math.min(data:size(), opt.ntrain), opt.batchSize do
       tm:reset()
       -- (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
-      optim.adam(fDx, parametersD, optimStateD)
+      optim[opt.optim](fDx, parametersD, optimStateD)
 
       -- (2) Update G network: maximize log(D(G(z)))
-      optim.adam(fGx, parametersG, optimStateG)
+      optim[opt.optim](fGx, parametersG, optimStateG)
 
       -- display
       counter = counter + 1
-      if counter % 10 == 0 then
+      if counter % 10 == 0 and opt.display then
           local fake = netG:forward(noise_vis)
-          input:copy(fake)
-          disp.image(input, {win=10})
+          local real = data:getBatch()
+          disp.image(fake, {win=opt.display_id})
+          disp.image(real, {win=opt.display_id * 3})
       end
 
       -- logging
