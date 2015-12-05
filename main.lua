@@ -137,23 +137,32 @@ local fDx = function(x)
    netG:apply(function(m) if torch.type(m):find('Convolution') then m.bias:zero() end end)
 
    gradParametersD:zero()
-   -- get mini-batch of half real and half generated samples
+
+   -- train with real
    data_tm:reset(); data_tm:resume()
    local real = data:getBatch()
    data_tm:stop()
-   input:narrow(1, opt.batchSize / 2 + 1, opt.batchSize / 2):copy(real:narrow(1, 1, opt.batchSize / 2))
-   label:narrow(1, opt.batchSize / 2 + 1, opt.batchSize / 2):fill(real_label)
+   input:copy(real)
+   label:fill(real_label)
 
-   noise:uniform(-1, 1) -- regenerate random noise
-   local fake = netG:forward(noise)
-   input:narrow(1, 1, opt.batchSize / 2):copy(fake:narrow(1, 1, opt.batchSize / 2))
-   label:narrow(1, 1, opt.batchSize / 2):fill(fake_label)
-
-   -- run it through network
-   local output = netD:forward(input):squeeze()
-   errD = criterion:forward(output, label)
+   local output = netD:forward(input)
+   local errD_real = criterion:forward(output, label)
    local df_do = criterion:backward(output, label)
    netD:backward(input, df_do)
+
+   -- train with fake
+   noise:uniform(-1, 1) -- regenerate random noise
+   local fake = netG:forward(noise)
+   input:copy(fake)
+   label:fill(fake_label)
+
+   local output = netD:forward(input)
+   local errD_fake = criterion:forward(output, label)
+   local df_do = criterion:backward(output, label)
+   netD:backward(input, df_do)
+
+   errD = errD_real + errD_fake
+
    return errD, gradParametersD
 end
 
@@ -164,23 +173,18 @@ local fGx = function(x)
 
    gradParametersG:zero()
 
-   -- get mini-batch of half real and half generated samples
-   local real = data:getBatch()
-   input:narrow(1, opt.batchSize / 2 + 1, opt.batchSize / 2):copy(real:narrow(1, 1, opt.batchSize / 2))
-   label:narrow(1, opt.batchSize / 2 + 1, opt.batchSize / 2):fill(fake_label)
-
+   --[[ the three lines below were already executed in fDx, so save computation
    noise:uniform(-1, 1) -- regenerate random noise
    local fake = netG:forward(noise)
-   input:narrow(1, 1, opt.batchSize / 2):copy(fake:narrow(1, 1, opt.batchSize / 2))
-   label:narrow(1, 1, opt.batchSize / 2):fill(real_label) -- fake labels are real for generator cost
+   input:copy(fake) ]]--
+   label:fill(real_label) -- fake labels are real for generator cost
 
-   local output = netD:forward(input):squeeze()
-
+   local output = netD.output -- netD:forward(input) was already executed in fDx, so save computation
    errG = criterion:forward(output, label)
    local df_do = criterion:backward(output, label)
    local df_dg = netD:updateGradInput(input, df_do)
 
-   netG:backward(noise, df_dg:narrow(1, 1, opt.batchSize / 2))
+   netG:backward(noise, df_dg)
    return errG, gradParametersG
 end
 
@@ -191,7 +195,7 @@ for epoch = 1, opt.niter do
    for i = 1, math.min(data:size(), opt.ntrain), opt.batchSize do
       tm:reset()
       -- (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
-      -- optim.adam(fDx, parametersD, optimStateD)
+      optim.adam(fDx, parametersD, optimStateD)
 
       -- (2) Update G network: maximize log(D(G(z)))
       optim.adam(fGx, parametersG, optimStateG)
@@ -200,10 +204,9 @@ for epoch = 1, opt.niter do
       counter = counter + 1
       if counter % 10 == 0 then
           local fake = netG:forward(noise_vis)
-          input:narrow(1, 1, opt.batchSize / 2):copy(fake:narrow(1, 1, opt.batchSize / 2))
+          input:copy(fake)
           disp.image(input, {win=10})
       end
-
 
       -- logging
       if ((i-1) / opt.batchSize) % 1 == 0 then
