@@ -10,14 +10,15 @@
 require 'image'
 tds=require 'tds'
 require 'lmdb'
+ffi = require 'ffi'
 
 -- This file contains the data-loading logic and details.
 -- It is run by each data-loader thread.
 ------------------------------------------
 -------- COMMON CACHES and PATHS
-classes = {'bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room',
-          'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower'}
--- classes = {'church_outdoor'}
+-- classes = {'bedroom', 'bridge', 'church_outdoor', 'classroom', 'conference_room',
+--           'dining_room', 'kitchen', 'living_room', 'restaurant', 'tower'}
+classes = {'bedroom'}
 table.sort(classes)
 print('Classes:')
 for k,v in pairs(classes) do
@@ -116,7 +117,8 @@ trainLoader.db = {}
 trainLoader.db_reader = {}
 for i=1,#classes do
    print('initializing: ', classes[i])
-   trainLoader.indices[i] = torch.load(paths.concat(trainPath, classes[i] .. '_train_lmdb.t7'))
+   trainLoader.indices[i] = torch.load(paths.concat(trainPath, classes[i]
+                                                        .. '_train_lmdb_hashes_chartensor.t7'))
    trainLoader.db[i] = lmdb.env{Path=paths.concat(trainPath, classes[i] .. '_train_lmdb'),
                                 RDONLY=true, NOLOCK=true, NOTLS=true, NOSYNC=true, NOMETASYNC=true,
                                MaxReaders=20, MaxDBs=20}
@@ -129,8 +131,9 @@ function trainLoader:sample(quantity)
    local label = torch.Tensor(quantity)
    for i=1, quantity do
       local class = torch.random(1, #self.classes)
-      local index = torch.random(1, #self.indices[class])
-      local imgblob = self.db_reader[class]:getData(trainLoader.indices[class][index])
+      local index = torch.random(1, self.indices[class]:size(1))
+      local hash = ffi.string(trainLoader.indices[class][index]:data(), trainLoader.indices[class]:size(2) - 1)
+      local imgblob = self.db_reader[class]:getData(hash)
       local out = trainHook(imgblob)
       data[i]:copy(out)
       label[i] = class
@@ -138,7 +141,18 @@ function trainLoader:sample(quantity)
    return data, label
 end
 
+function trainLoader:size()
+    if self._size then return self._size end
+    local size = 0
+    for i=1,#self.indices do
+        size = size + self.indices[i]:size(1)
+    end
+    self._size = size
+   return size
+end
+
 -- testLoader
+--[[
 print('initializing test loader')
 testLoader = {}
 testLoader.classes = classes
@@ -178,6 +192,7 @@ function testLoader:get(i1, i2)
    return data, label
 end
 collectgarbage()
+]]--
 -----------------------------------------
 
 -- Estimate the per-channel mean/std (so that the loaders can normalize appropriately)
