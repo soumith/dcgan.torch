@@ -19,10 +19,13 @@ opt = {
    display = true,         -- display samples while training
    display_id = 10,        -- display window id.
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
+   name = 'experiment1',
+   noise = 'uniform',      -- uniform / normal
 }
 
 -- one-line argument parser. parses enviroment variables to override the defaults
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
+print(opt)
 
 opt.manualSeed = torch.random(1, 10000) -- fix seed
 print("Random Seed: " .. opt.manualSeed)
@@ -137,7 +140,11 @@ if opt.display then
 end
 
 noise_vis = noise:clone()
-noise_vis:uniform(-1, 1)
+if opt.noise == 'uniform' then
+    noise_vis:uniform(-1, 1)
+elseif opt.noise == 'normal' then
+    noise_vis:normal(0, 1)
+end
 
 -- create closure to evaluate f(X) and df/dX of discriminator
 local fDx = function(x)
@@ -159,7 +166,11 @@ local fDx = function(x)
    netD:backward(input, df_do)
 
    -- train with fake
-   noise:uniform(-1, 1) -- regenerate random noise
+   if opt.noise == 'uniform' then -- regenerate random noise
+       noise:uniform(-1, 1)
+   elseif opt.noise == 'normal' then
+       noise:normal(0, 1)
+   end
    local fake = netG:forward(noise)
    input:copy(fake)
    label:fill(fake_label)
@@ -213,8 +224,8 @@ for epoch = 1, opt.niter do
       if counter % 10 == 0 and opt.display then
           local fake = netG:forward(noise_vis)
           local real = data:getBatch()
-          disp.image(fake, {win=opt.display_id})
-          disp.image(real, {win=opt.display_id * 3})
+          disp.image(fake, {win=opt.display_id, title=opt.name})
+          disp.image(real, {win=opt.display_id * 3, title=opt.name})
       end
 
       -- logging
@@ -228,8 +239,8 @@ for epoch = 1, opt.niter do
       end
    end
    paths.mkdir('checkpoints')
-   torch.save('checkpoints/net_G.t7', netG)
-   torch.save('checkpoints/net_D.t7', netD)
+   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG)
+   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD)
    print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
             epoch, opt.niter, epoch_tm:time().real))
 end

@@ -15,12 +15,14 @@ function data.new(n, dataset_name, opt_)
 
    local donkey_file
    if dataset_name == 'imagenet' or dataset_name == 'folder' then
-      donkey_file = 'donkey_folder.lua'
+       donkey_file = 'donkey_folder.lua'
+   elseif dataset_name == 'rrrrr' then
+       donkey_file = 'donkey_rrrrr.lua'
    elseif dataset_name == 'lsun' then
-      donkey_file = 'donkey_lsun.lua'
-      if n > 6 then n = 6 end -- lmdb complains beyond 6 donkeys. wtf.
+       donkey_file = 'donkey_lsun.lua'
+       if n > 6 then n = 6 end -- lmdb complains beyond 6 donkeys. wtf.
    else
-      error('Unknown dataset: ', dataset_name)
+      error('Unknown dataset: ' .. dataset_name)
    end
 
    if n > 0 then
@@ -44,6 +46,7 @@ function data.new(n, dataset_name, opt_)
       if donkey_file then paths.dofile(donkey_file) end
       self.threads = {}
       function self.threads:addjob(f1, f2) f2(f1()) end
+      function self.threads:dojob() end
       function self.threads:synchronize() end
    end
 
