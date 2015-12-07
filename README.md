@@ -1,4 +1,4 @@
-DCGAN.torch: Train your own image generation neural network
+DCGAN.torch: Train your own image generator
 ===========================================================
 
 1. Train your own network
@@ -18,7 +18,6 @@ DCGAN.torch: Train your own image generation neural network
 
 # Installing dependencies
 ## Without GPU
-- Open a Terminal
 - Install Torch:  http://torch.ch/docs/getting-started.html#_
 
 
@@ -30,9 +29,9 @@ DCGAN.torch: Train your own image generation neural network
 ## Display UI
 Optionally, for displaying images during training and generation, we will use the [display package](https://github.com/szym/display).
 
-Install it with: `luarocks install display`
-Then start the server with: `th -ldisplay.start`
-Open this URL in your browser: http://localhost:8000
+- Install it with: `luarocks install display`
+- Then start the server with: `th -ldisplay.start`
+- Open this URL in your browser: [http://localhost:8000](http://localhost:8000)
 
 You can see training progress in your browser window. It will look something like this:
 ![display](images/display_example.png "Example of display")
@@ -45,7 +44,11 @@ You can see training progress in your browser window. It will look something lik
 
 ```bash
 mkdir celebA; cd celebA
-# download img_align_celeba.zip from http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html "Align&Cropped Images"
+```
+
+Download img_align_celeba.zip from [http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html](http://mmlab.ie.cuhk.edu.hk/projects/CelebA.html) under the link "Align&Cropped Images".
+
+```bash
 unzip img_align_celeba.zip; cd ..
 DATA_ROOT=celebA th data/crop_celebA.lua
 ```
@@ -58,7 +61,7 @@ DATA_ROOT=celebA dataset=folder th main.lua
 
 ## 1.2. Train Bedrooms, Bridges, Churches etc. using the LSUN dataset
 
-LSUN dataset is shipped as an LMDB database. Install LMDB on your system first.
+LSUN dataset is shipped as an LMDB database. First, install LMDB on your system.
 
 - On OSX with Homebrew:  `brew install lmdb`
 - On Ubuntu: `sudo apt-get install liblmdb-dev`
@@ -70,9 +73,13 @@ luarocks install lmdb.torch
 luarocks install tds
 ```
 
-### Preprocessing
-Download "bedroom_train_lmdb" from the LSUN website.
+### Preprocessing (with bedroom class as an example)
+Download `bedroom_train_lmdb` from the [LSUN website](http://lsun.cs.princeton.edu).
+
+Generate an index file:
+```bash
 DATA_ROOT=[path_to_lmdb] th data/lsun_index_generator.lua
+```
 
 ### Training
 DATA_ROOT=[path-to-lmdb] dataset=lsun cuth main.lua
