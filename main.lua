@@ -3,24 +3,23 @@ require 'nn'
 require 'optim'
 
 opt = {
-   dataset = 'lsun',      -- imagenet / lsun / folder
+   dataset = 'lsun',       -- imagenet / lsun / folder
    batchSize = 64,
    loadSize = 96,
    fineSize = 64,
-   nz = 100,              -- #  of dim for Z
-   ngf = 64,              -- #  of gen filters in first conv layer
-   ndf = 64,              -- #  of discrim filters in first conv layer
-   nThreads = 1,          -- #  of data loading threads to use
-   niter = 25,            -- #  of iter at starting learning rate
-   optim = 'adam',        -- optimization method. adam / sgd
-   lr = 0.0002,           -- initial learning rate for adam
-   beta1 = 0.5,           -- momentum term of adam
-   ntrain = math.huge,    -- #  of examples per epoch. math.huge for full dataset
+   nz = 100,               -- #  of dim for Z
+   ngf = 64,               -- #  of gen filters in first conv layer
+   ndf = 64,               -- #  of discrim filters in first conv layer
+   nThreads = 1,           -- #  of data loading threads to use
+   niter = 25,             -- #  of iter at starting learning rate
+   lr = 0.0002,            -- initial learning rate for adam
+   beta1 = 0.5,            -- momentum term of adam
+   ntrain = math.huge,     -- #  of examples per epoch. math.huge for full dataset
    display = true,         -- display samples while training
    display_id = 10,        -- display window id.
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'experiment1',
-   noise = 'uniform',      -- uniform / normal
+   noise = 'normal',       -- uniform / normal
 }
 
 -- one-line argument parser. parses enviroment variables to override the defaults
@@ -64,7 +63,6 @@ local SpatialFullConvolution = nn.SpatialFullConvolution
 
 local netG = nn.Sequential()
 -- input is Z, going into a convolution
-netG:add(nn.View(nz, 1, 1):setNumInputDims(1))
 netG:add(SpatialFullConvolution(nz, ngf * 8, 4, 4))
 netG:add(SpatialBatchNormalization(ngf * 8)):add(nn.ReLU(true))
 -- state size: (ngf*8) x 4 x 4
@@ -118,7 +116,7 @@ optimStateD = {
 }
 ----------------------------------------------------------------------------
 local input = torch.Tensor(opt.batchSize, 3, opt.fineSize, opt.fineSize)
-local noise = torch.Tensor(opt.batchSize, nz)
+local noise = torch.Tensor(opt.batchSize, nz, 1, 1)
 local label = torch.Tensor(opt.batchSize)
 local errD, errG
 local epoch_tm = torch.Timer()
@@ -214,10 +212,10 @@ for epoch = 1, opt.niter do
    for i = 1, math.min(data:size(), opt.ntrain), opt.batchSize do
       tm:reset()
       -- (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
-      optim[opt.optim](fDx, parametersD, optimStateD)
+      optim.adam(fDx, parametersD, optimStateD)
 
       -- (2) Update G network: maximize log(D(G(z)))
-      optim[opt.optim](fGx, parametersG, optimStateG)
+      optim.adam(fGx, parametersG, optimStateG)
 
       -- display
       counter = counter + 1
