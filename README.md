@@ -1,17 +1,18 @@
 DCGAN.torch: Train your own image generator
 ===========================================================
 
-1. Train your own network
-   1. Train a face generator using the Celeb-A dataset
-   2. Train Bedrooms, Bridges, Churches etc. using the LSUN dataset
-   3. Train a generator on your own set of images.
-   4. Train on the ImageNet dataset
+0. Prerequisites
+[1. Train your own network](#1-train-your-own-network)
+   [1. Train a face generator using the Celeb-A dataset](#11-train-a-face-generator-using-the-celeb-a-dataset)
+   [2. Train Bedrooms, Bridges, Churches etc. using the LSUN dataset](#12-train-bedrooms-bridges-churches-etc-using-the-lsun-dataset)
+   [3. Train a generator on your own set of images.]()
+   [4. Train on the ImageNet dataset](#14-train-on-the-imagenet-dataset)
 2. Use a pre-trained generator to generate images.
    1. Generate samples of 64x64 pixels
    2. Generate large artsy images (tried up to 4096 x 4096 pixels)
    3. Walk in the space of samples
 
-# Prerequisites
+# 0. Prerequisites
 - Computer with Linux or OSX
 - Torch-7
 - For training, an NVIDIA GPU is strongly recommended for speed. CPU is supported but training is very slow.
@@ -83,6 +84,14 @@ DATA_ROOT=[path_to_lmdb] th data/lsun_index_generator.lua
 
 ### Training
 DATA_ROOT=[path-to-lmdb] dataset=lsun cuth main.lua
+
+## 1.3. Train a generator on your own set of images.
+### Preprocessing
+Create a folder called `myimages`.
+Inside that folder, create a folder called `images` and place all your images inside it.
+
+### Training
+DATA_ROOT=myimages dataset=folder th main.lua
 
 ## 1.4. Train on the ImageNet dataset
 
