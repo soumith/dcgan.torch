@@ -98,6 +98,17 @@ for i=1,#classes do
    trainLoader.db_reader[i] = trainLoader.db[i]:txn(true)
 end
 
+local function getData(self, key, binary)
+   self.mdb_key = lmdb.MDB_val(self.mdb_key, key, true)
+    self.mdb_data = self.mdb_data or ffi.new('MDB_val[1]')
+    if lmdb.errcheck('mdb_get', self.mdb_txn[0],
+                     self.mdb_dbi[0], self.mdb_key,self.mdb_data) == lmdb.C.MDB_NOTFOUND then
+        return nil
+    else
+        return lmdb.from_MDB_val(self.mdb_data, false, binary)
+    end
+end
+
 function trainLoader:sample(quantity)
    local data = torch.Tensor(quantity, sampleSize[1], sampleSize[2], sampleSize[2])
    local label = torch.Tensor(quantity)
@@ -105,11 +116,12 @@ function trainLoader:sample(quantity)
       local class = torch.random(1, #self.classes)
       local index = torch.random(1, self.indices[class]:size(1))
       local hash = ffi.string(trainLoader.indices[class][index]:data(), trainLoader.indices[class]:size(2) - 1)
-      local imgblob = self.db_reader[class]:getData(hash)
+      local imgblob = getData(self.db_reader[class], hash, true)
       local out = trainHook(imgblob)
       data[i]:copy(out)
       label[i] = class
    end
+   collectgarbage(); collectgarbage()
    return data, label
 end
 

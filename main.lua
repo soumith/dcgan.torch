@@ -1,6 +1,7 @@
 require 'torch'
 require 'nn'
 require 'optim'
+util = paths.dofile('util.lua')
 
 opt = {
    dataset = 'lsun',       -- imagenet / lsun / folder
@@ -15,7 +16,7 @@ opt = {
    lr = 0.0002,            -- initial learning rate for adam
    beta1 = 0.5,            -- momentum term of adam
    ntrain = math.huge,     -- #  of examples per epoch. math.huge for full dataset
-   display = true,         -- display samples while training
+   display = 1,            -- display samples while training. 0 = false
    display_id = 10,        -- display window id.
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'experiment1',
@@ -25,6 +26,7 @@ opt = {
 -- one-line argument parser. parses enviroment variables to override the defaults
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
 print(opt)
+if opt.display == 0 then opt.display = false end
 
 opt.manualSeed = torch.random(1, 10000) -- fix seed
 print("Random Seed: " .. opt.manualSeed)
@@ -55,10 +57,8 @@ local ngf = opt.ngf
 local real_label = 1
 local fake_label = 0
 
-require 'fbcunn'
-require 'cudnn'
-local SpatialBatchNormalization = fbnn.SpatialBatchNormalization
-local SpatialConvolution = cudnn.SpatialConvolution
+local SpatialBatchNormalization = nn.SpatialBatchNormalization
+local SpatialConvolution = nn.SpatialConvolution
 local SpatialFullConvolution = nn.SpatialFullConvolution
 
 local netG = nn.Sequential()
@@ -126,16 +126,15 @@ local data_tm = torch.Timer()
 if opt.gpu > 0 then
    require 'cunn'
    cutorch.setDevice(opt.gpu)
-   netD:cuda();           netG:cuda();           criterion:cuda()
    input = input:cuda();  noise = noise:cuda();  label = label:cuda()
+   netG = util.cudnn(netG);     netD = util.cudnn(netD)
+   netD:cuda();           netG:cuda();           criterion:cuda()
 end
 
 local parametersD, gradParametersD = netD:getParameters()
 local parametersG, gradParametersG = netG:getParameters()
 
-if opt.display then
-    disp = dofile('/home/soumith/fbcode/deeplearning/experimental/shared/play_blocks/display.lua')
-end
+if opt.display then disp = require 'display' end
 
 noise_vis = noise:clone()
 if opt.noise == 'uniform' then
@@ -237,8 +236,8 @@ for epoch = 1, opt.niter do
       end
    end
    paths.mkdir('checkpoints')
-   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG)
-   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD)
+   util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG, opt.gpu)
+   util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD, opt.gpu)
    print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
             epoch, opt.niter, epoch_tm:time().real))
 end

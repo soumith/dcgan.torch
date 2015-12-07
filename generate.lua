@@ -1,7 +1,6 @@
-require 'cunn'
-require 'fbcunn'
-require 'cudnn'
 require 'image'
+require 'nn'
+util = paths.dofile('util.lua')
 
 opt = {
     batchSize = 10,
@@ -11,14 +10,19 @@ opt = {
     imsize = 1,
     noisemode = 'random', -- random / line
     name = 'generation1',
+    gpu = 1, -- gpu mode. 0 = CPU
+    display = 1, -- 0 = false, 1 = true
 }
 for k,v in pairs(opt) do opt[k] = tonumber(os.getenv(k)) or os.getenv(k) or opt[k] end
 print(opt)
+if opt.display == 0 then opt.display = false end
 
+torch.setdefaulttensortype('torch.FloatTensor')
 assert(netG ~= '', 'provide a generator model')
 
-noise = torch.CudaTensor(opt.batchSize, opt.nz, opt.imsize, opt.imsize)
-netG = torch.load(opt.netG)
+noise = torch.Tensor(opt.batchSize, opt.nz, opt.imsize, opt.imsize)
+netG = util.load(opt.netG, opt.gpu)
+
 -- for older models, there was nn.View on the top
 -- which is unnecessary, and hinders convolutional generations.
 if torch.type(netG:get(1)) == 'nn.View' then
@@ -75,11 +79,20 @@ elseif opt.noisemode == 'line' then
     end
 end
 
+if opt.gpu > 0 then
+    require 'cunn'
+    require 'cudnn'
+    netG:cuda()
+    noise = noise:cuda()
+end
+
 local images = netG:forward(noise)
 print(#images)
 images:add(1):mul(0.5)
 print(images:min(), images:max(), images:mean(), images:std())
 image.save(opt.name .. '.png', image.toDisplayTensor(images))
 
-disp = dofile(os.getenv('HOME') .. '/fbsource/fbcode/deeplearning/experimental/shared/play_blocks/display.lua')
-disp.image(images)
+if opt.display then
+    disp = require 'display'
+    disp.image(images)
+end
