@@ -1,12 +1,11 @@
 DCGAN.torch: Train your own image generator
 ===========================================================
 
-0. Prerequisites
-[1. Train your own network](#1-train-your-own-network)
-   [1. Train a face generator using the Celeb-A dataset](#11-train-a-face-generator-using-the-celeb-a-dataset)
-   [2. Train Bedrooms, Bridges, Churches etc. using the LSUN dataset](#12-train-bedrooms-bridges-churches-etc-using-the-lsun-dataset)
-   [3. Train a generator on your own set of images.]()
-   [4. Train on the ImageNet dataset](#14-train-on-the-imagenet-dataset)
+1. [Train your own network](#1-train-your-own-network)
+   1. [Train a face generator using the Celeb-A dataset](#11-train-a-face-generator-using-the-celeb-a-dataset)
+   2. [Train Bedrooms, Bridges, Churches etc. using the LSUN dataset](#12-train-bedrooms-bridges-churches-etc-using-the-lsun-dataset)
+   3. [Train a generator on your own set of images.]()
+   4. [Train on the ImageNet dataset](#14-train-on-the-imagenet-dataset)
 2. Use a pre-trained generator to generate images.
    1. Generate samples of 64x64 pixels
    2. Generate large artsy images (tried up to 4096 x 4096 pixels)
