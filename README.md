@@ -11,7 +11,7 @@ DCGAN.torch: Train your own image generator
    2. Generate large artsy images (tried up to 4096 x 4096 pixels)
    3. Walk in the space of samples
 
-# 0. Prerequisites
+# Prerequisites
 - Computer with Linux or OSX
 - Torch-7
 - For training, an NVIDIA GPU is strongly recommended for speed. CPU is supported but training is very slow.
