@@ -51,11 +51,17 @@ function util.save(filename, net, gpu)
     netsave.output = netsave.output.new()
     netsave.gradInput = netsave.gradInput.new()
 
+    netsave:apply(function(m) if m.weight then m.gradWeight = nil; m.gradBias = nil; end end)
+
     torch.save(filename, netsave)
 end
 
 function util.load(filename, gpu)
-   return torch.load(filename)
+   local net = torch.load(filename)
+   net:apply(function(m) if m.weight then 
+	    m.gradWeight = m.weight:clone():zero(); 
+	    m.gradBias = m.bias:clone():zero(); end end)
+   return net
 end
 
 function util.cudnn(net)
