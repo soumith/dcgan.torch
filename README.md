@@ -142,8 +142,8 @@ gpu=1 net=[checkpoint-path] th generate.lua
 ```
 
 # Pre-trained network can be downloaded from here:
-- for faces (celeb-A dataset): celebA_25_net_G.t7
-- for bedrooms (LSUN dataset): bedrooms_4_net_G.t7
+- for faces (celeb-A dataset): [celebA_25_net_G.t7](https://github.com/soumith/lfs/raw/master/dcgan.torch/celebA_25_net_G.t7)
+- for bedrooms (LSUN dataset): [bedrooms_4_net_G.t7](https://github.com/soumith/lfs/raw/master/dcgan.torch/bedrooms_4_net_G.t7)
 
 ##2.1. Generate samples of 64x64 pixels
 ```bash
