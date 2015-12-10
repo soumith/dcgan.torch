@@ -86,6 +86,8 @@ DATA_ROOT=[path_to_lmdb] th data/lsun_index_generator.lua
 DATA_ROOT=[path-to-lmdb] dataset=lsun cuth main.lua
 ```
 
+The code for the LSUN data loader is hardcoded for bedrooms. Change [this line](https://github.com/soumith/dcgan.torch/blob/master/data/donkey_lsun.lua#L21) to another LSUN class to generate other classes.
+
 ## 1.3. Train a generator on your own set of images.
 ### Preprocessing
 - Create a folder called `myimages`.
