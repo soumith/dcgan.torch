@@ -20,11 +20,11 @@ DCGAN.torch: Train your own image generator
 ## Without GPU
 - Install Torch:  http://torch.ch/docs/getting-started.html#_
 
-
 ## With NVIDIA GPU
 - Install CUDA, and preferably CuDNN (optional).
   - Instructions for Ubuntu are here: [INSTALL.md](INSTALL.md)
 - Install Torch:  http://torch.ch/docs/getting-started.html#_
+- Optional, if you installed CuDNN, install cudnn bindings with `luarocks install cudnn`
 
 ## Display UI
 Optionally, for displaying images during training and generation, we will use the [display package](https://github.com/szym/display).
@@ -108,7 +108,48 @@ DATA_ROOT=[PATH_TO_IMAGENET]/train dataset=folder th main.lua
 
 
 # 2. Use a pre-trained generator to generate images.
+The generate script can operate in CPU or GPU mode.
+
+to run it on the CPU, use:
+```bash
+gpu=0 net=[checkpoint-path] th generate.lua
+```
+
+for using a GPU, use:
+```bash
+gpu=1 net=[checkpoint-path] th generate.lua
+```
+
+# Pre-trained network can be downloaded from here:
+- for faces (celeb-A dataset): celebA_25_net_G.t7
+- for bedrooms (LSUN dataset): bedrooms_4_net_G.t7
 
 ##2.1. Generate samples of 64x64 pixels
+```bash
+gpu=0 batchSize=64 net=celebA_25_net_G.t7 th generate.lua
+```
+
+The batchSize parameter controls the number of images to generate. If you have `display` running,
+the image will be shown there. The image is also saved to `generation1.png` in the same folder.
+
+![faces_pregen](images/faces_pregen.png "generated faces using pre-trained network")
+
+
 ##2.2. Generate large artsy images (tried up to 4096 x 4096 pixels)
+```bash
+gpu=0 batchSize=1 imsize=10 noisemode=linefull net=bedrooms_4_net_G.t7 th generate.lua
+```
+
+Controlling the `imsize` parameter will control the size of the output image.
+Larger the imsize, larger the output image.
+
+![line2d_pregen](images/line2d_pregen.png "generated line2d using pre-trained network")
+
 ##2.3. Walk in the space of samples
+```bash
+gpu=0 batchSize=16 noisemode=line net=bedrooms_4_net_G.t7 th generate.lua
+```
+
+controlling the batchSize parameter changes how big of a step you take.
+
+![interp_pregen](images/interp_pregen.png "generated interp using pre-trained network")

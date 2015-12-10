@@ -12,12 +12,14 @@ function util.save(filename, net, gpu)
         -- convert to CPU compatible model
         if torch.type(l) == 'cudnn.SpatialConvolution' then
             local new = nn.SpatialConvolution(l.nInputPlane, l.nOutputPlane,
-                                          l.kW, l.kH, l.dW, l.dH, l.padW, l.padH)
+					      l.kW, l.kH, l.dW, l.dH, 
+					      l.padW, l.padH)
             new.weight:copy(l.weight)
             new.bias:copy(l.bias)
             netsave.modules[k] = new
         elseif torch.type(l) == 'fbnn.SpatialBatchNormalization' then
-            new = nn.SpatialBatchNormalization(l.weight:size(1), l.eps, l.momentum, l.affine)
+            new = nn.SpatialBatchNormalization(l.weight:size(1), l.eps, 
+					       l.momentum, l.affine)
             new.running_mean:copy(l.running_mean)
             new.running_std:copy(l.running_std)
             if l.affine then
@@ -38,7 +40,8 @@ function util.save(filename, net, gpu)
         m.centered = nil
         m.std = nil
         m.normalized = nil
-        if m.weight then
+	-- TODO: figure out why giant storage-offsets being created on typecast
+        if m.weight then 
             m.weight = m.weight:clone()
             m.gradWeight = m.gradWeight:clone()
             m.bias = m.bias:clone()
@@ -52,24 +55,7 @@ function util.save(filename, net, gpu)
 end
 
 function util.load(filename, gpu)
-    local net = torch.load(filename)
-
-    for k, l in ipairs(net.modules) do
-        -- convert to cudnn
-        if torch.type(l) == 'nn.SpatialConvolution' and pcall(require, 'cudnn') then
-            local new = cudnn.SpatialConvolution(l.nInputPlane, l.nOutputPlane,
-                                             l.kW, l.kH, l.dW, l.dH, l.padW, l.padH)
-            new.weight:copy(l.weight)
-            new.bias:copy(l.weight)
-            net.modules[k] = new
-        end
-    end
-
-    if gpu > 0 then
-        net:cuda()
-    end
-
-    return net
+   return torch.load(filename)
 end
 
 function util.cudnn(net)
@@ -77,7 +63,8 @@ function util.cudnn(net)
         -- convert to cudnn
         if torch.type(l) == 'nn.SpatialConvolution' and pcall(require, 'cudnn') then
             local new = cudnn.SpatialConvolution(l.nInputPlane, l.nOutputPlane,
-                                             l.kW, l.kH, l.dW, l.dH, l.padW, l.padH)
+						 l.kW, l.kH, l.dW, l.dH, 
+						 l.padW, l.padH)
             new.weight:copy(l.weight)
             new.bias:copy(l.bias)
             net.modules[k] = new
@@ -86,6 +73,25 @@ function util.cudnn(net)
     return net
 end
 
-
+-- a function to do memory optimizations by 
+-- setting up double-buffering across the network.
+-- this drastically reduces the memory needed to generate samples.
+function util.optimizeInferenceMemory(net)
+    local finput, output, outputB
+    net:apply(
+        function(m)
+            if torch.type(m):find('Convolution') then
+                finput = finput or m.finput
+                m.finput = finput
+                output = output or m.output
+                m.output = output
+            elseif torch.type(m):find('ReLU') then
+                m.inplace = true
+            elseif torch.type(m):find('BatchNormalization') then
+                outputB = outputB or m.output
+                m.output = outputB
+            end
+    end)
+end
 
 return util
