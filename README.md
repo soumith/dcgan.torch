@@ -29,7 +29,7 @@ DCGAN.torch: Train your own image generator
 ## Display UI
 Optionally, for displaying images during training and generation, we will use the [display package](https://github.com/szym/display).
 
-- Install it with: `luarocks install display`
+- Install it with: `luarocks install https://raw.githubusercontent.com/szym/display/master/display-scm-0.rockspec`
 - Then start the server with: `th -ldisplay.start`
 - Open this URL in your browser: [http://localhost:8000](http://localhost:8000)
 
