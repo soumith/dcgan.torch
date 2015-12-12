@@ -99,7 +99,7 @@ for i=1,#classes do
 end
 
 local function getData(self, key, binary)
-   self.mdb_key = lmdb.MDB_val(self.mdb_key, key, true)
+    self.mdb_key = lmdb.MDB_val(self.mdb_key, key, true)
     self.mdb_data = self.mdb_data or ffi.new('MDB_val[1]')
     if lmdb.errcheck('mdb_get', self.mdb_txn[0],
                      self.mdb_dbi[0], self.mdb_key,self.mdb_data) == lmdb.C.MDB_NOTFOUND then
@@ -115,7 +115,7 @@ function trainLoader:sample(quantity)
    for i=1, quantity do
       local class = torch.random(1, #self.classes)
       local index = torch.random(1, self.indices[class]:size(1))
-      local hash = ffi.string(trainLoader.indices[class][index]:data(), trainLoader.indices[class]:size(2) - 1)
+      local hash = ffi.string(trainLoader.indices[class][index]:data(), trainLoader.indices[class]:size(2))
       local imgblob = getData(self.db_reader[class], hash, true)
       local out = trainHook(imgblob)
       data[i]:copy(out)
