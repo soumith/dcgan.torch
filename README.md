@@ -83,7 +83,7 @@ DATA_ROOT=[path_to_lmdb] th data/lsun_index_generator.lua
 
 ### Training
 ```bash
-DATA_ROOT=[path-to-lmdb] dataset=lsun cuth main.lua
+DATA_ROOT=[path-to-lmdb] dataset=lsun th main.lua
 ```
 
 The code for the LSUN data loader is hardcoded for bedrooms. Change [this line](https://github.com/soumith/dcgan.torch/blob/master/data/donkey_lsun.lua#L21) to another LSUN class to generate other classes.
