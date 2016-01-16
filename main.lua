@@ -238,6 +238,8 @@ for epoch = 1, opt.niter do
    paths.mkdir('checkpoints')
    util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG, opt.gpu)
    util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD, opt.gpu)
+   parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
+   parametersG, gradParametersG = netG:getParameters()
    print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
             epoch, opt.niter, epoch_tm:time().real))
 end
