@@ -236,6 +236,8 @@ for epoch = 1, opt.niter do
       end
    end
    paths.mkdir('checkpoints')
+   parametersD, gradParametersD = nil, nil -- nil them to avoid spiking memory
+   parametersG, gradParametersG = nil, nil
    util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG, opt.gpu)
    util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD, opt.gpu)
    parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
