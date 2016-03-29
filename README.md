@@ -10,6 +10,7 @@ DCGAN.torch: Train your own image generator
    1. [Generate samples of 64x64 pixels](#21-generate-samples-of-64x64-pixels)
    2. [Generate large artsy images (tried up to 4096 x 4096 pixels)](#22-generate-large-artsy-images-tried-up-to-4096-x-4096-pixels)
    3. [Walk in the space of samples](#23-walk-in-the-space-of-samples)
+3. [Vector Arithmetic of images in latent space](#vector-arithmetic)
 
 # Prerequisites
 - Computer with Linux or OSX
@@ -176,3 +177,9 @@ gpu=0 batchSize=16 noisemode=line net=bedrooms_4_net_G.t7 th generate.lua
 controlling the batchSize parameter changes how big of a step you take.
 
 ![interp_pregen](images/interp_pregen.png "generated interp using pre-trained network")
+
+# Vector Arithmetic
+```bash
+net=[modelfile] gpu=0 qlua arithmetic.lua
+```
+![vector_arithmetic](images/arithmetic.png "generated vector arithmetic")
