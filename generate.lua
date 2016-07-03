@@ -1,6 +1,6 @@
 require 'image'
 require 'nn'
-util = paths.dofile('util.lua')
+local optnet = require 'optnet'
 torch.setdefaulttensortype('torch.FloatTensor')
 
 opt = {
@@ -21,7 +21,7 @@ if opt.display == 0 then opt.display = false end
 assert(net ~= '', 'provide a generator model')
 
 noise = torch.Tensor(opt.batchSize, opt.nz, opt.imsize, opt.imsize)
-net = util.load(opt.net, opt.gpu)
+net = torch.load(opt.net)
 
 -- for older models, there was nn.View on the top
 -- which is unnecessary, and hinders convolutional generations.
@@ -64,19 +64,22 @@ elseif opt.noisemode == 'linefull' then
     end
 end
 
+local sample_input = torch.randn(2,100,1,1)
 if opt.gpu > 0 then
     require 'cunn'
     require 'cudnn'
     net:cuda()
-    util.cudnn(net)
+    cudnn.convert(net, cudnn)
     noise = noise:cuda()
+    sample_input = sample_input:cuda()
 else
+   sample_input = sample_input:float()
    net:float()
 end
 
 -- a function to setup double-buffering across the network.
 -- this drastically reduces the memory needed to generate samples
-util.optimizeInferenceMemory(net)
+optnet.optimizeMemory(net, sample_input)
 
 local images = net:forward(noise)
 print('Images size: ', images:size(1)..' x '..images:size(2) ..' x '..images:size(3)..' x '..images:size(4))

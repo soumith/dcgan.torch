@@ -25,6 +25,7 @@ DCGAN.torch: Train your own image generator
 - Install CUDA, and preferably CuDNN (optional).
   - Instructions for Ubuntu are here: [INSTALL.md](INSTALL.md)
 - Install Torch:  http://torch.ch/docs/getting-started.html#_
+- Install optnet to reduce memory footprint for large images: `luarocks install optnet`
 - Optional, if you installed CuDNN, install cudnn bindings with `luarocks install cudnn`
 
 ## Display UI
