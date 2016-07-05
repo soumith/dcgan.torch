@@ -1,7 +1,7 @@
 require 'image'
 require 'nn'
 require 'qt'
-util = paths.dofile('util.lua')
+local optnet = require 'optnet'
 torch.setdefaulttensortype('torch.FloatTensor')
 torch.manualSeed(1)
 opt = {
@@ -20,7 +20,7 @@ if opt.display == 0 then opt.display = false end
 
 assert(net ~= '', 'provide a generator model')
 
-net = util.load(opt.net, opt.gpu)
+net = torch.load(opt.net)
 
 -- for older models, there was nn.View on the top
 -- which is unnecessary, and hinders convolutional generations.
@@ -30,13 +30,15 @@ end
 
 print(net)
 
+local sample_input = torch.randn(2,100,1,1)
 if opt.gpu > 0 then
     require 'cunn'
     require 'cudnn'
     net:cuda()
-    util.cudnn(net)
-    noise = noise:cuda()
+    cudnn.convert(net, cudnn)
+    sample_input = sample_input:cuda()
 else
+   sample_input = sample_input:float()
    net:float()
 end
 
@@ -44,7 +46,7 @@ net:evaluate()
 
 -- a function to setup double-buffering across the network.
 -- this drastically reduces the memory needed to generate samples
-util.optimizeInferenceMemory(net)
+optnet.optimizeMemory(net, sample_input)
 
 local function regenerate()
    noise = torch.Tensor(opt.batchSize, opt.nz, opt.imsize, opt.imsize)
@@ -136,7 +138,6 @@ for i=0,2 do
    images[6+7*i]:fill(0)
    images[7+7*i]:fill(0)
 end
-
 
 final_image = image.toDisplayTensor({input=images:narrow(1,1,28), nrow = 7, scaleeach=true})
 image.save('arithmetic.png', final_image)

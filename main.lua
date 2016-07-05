@@ -1,7 +1,6 @@
 require 'torch'
 require 'nn'
 require 'optim'
-util = paths.dofile('util.lua')
 
 opt = {
    dataset = 'lsun',       -- imagenet / lsun / folder
@@ -43,7 +42,7 @@ local function weights_init(m)
    local name = torch.type(m)
    if name:find('Convolution') then
       m.weight:normal(0.0, 0.02)
-      m.bias:fill(0)
+      m:noBias()
    elseif name:find('BatchNormalization') then
       if m.weight then m.weight:normal(1.0, 0.02) end
       if m.bias then m.bias:fill(0) end
@@ -127,7 +126,13 @@ if opt.gpu > 0 then
    require 'cunn'
    cutorch.setDevice(opt.gpu)
    input = input:cuda();  noise = noise:cuda();  label = label:cuda()
-   netG = util.cudnn(netG);     netD = util.cudnn(netD)
+
+   if pcall(require, 'cudnn') then
+      require 'cudnn'
+      cudnn.benchmark = true
+      cudnn.convert(netG, cudnn)
+      cudnn.convert(netD, cudnn)
+   end
    netD:cuda();           netG:cuda();           criterion:cuda()
 end
 
@@ -145,9 +150,6 @@ end
 
 -- create closure to evaluate f(X) and df/dX of discriminator
 local fDx = function(x)
-   netD:apply(function(m) if torch.type(m):find('Convolution') then m.bias:zero() end end)
-   netG:apply(function(m) if torch.type(m):find('Convolution') then m.bias:zero() end end)
-
    gradParametersD:zero()
 
    -- train with real
@@ -184,9 +186,6 @@ end
 
 -- create closure to evaluate f(X) and df/dX of generator
 local fGx = function(x)
-   netD:apply(function(m) if torch.type(m):find('Convolution') then m.bias:zero() end end)
-   netG:apply(function(m) if torch.type(m):find('Convolution') then m.bias:zero() end end)
-
    gradParametersG:zero()
 
    --[[ the three lines below were already executed in fDx, so save computation
@@ -238,8 +237,8 @@ for epoch = 1, opt.niter do
    paths.mkdir('checkpoints')
    parametersD, gradParametersD = nil, nil -- nil them to avoid spiking memory
    parametersG, gradParametersG = nil, nil
-   util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG, opt.gpu)
-   util.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD, opt.gpu)
+   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG:clearState())
+   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD:clearState())
    parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
    parametersG, gradParametersG = netG:getParameters()
    print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
