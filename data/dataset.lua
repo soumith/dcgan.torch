@@ -136,7 +136,7 @@ function dataset:__init(...)
    local wc = 'wc'
    local cut = 'cut'
    local find = 'find'
-   if jit.os == 'OSX' then
+   if ffi.os == 'OSX' then
       wc = 'gwc'
       cut = 'gcut'
       find = 'gfind'
