@@ -135,7 +135,7 @@ function dataset:__init(...)
    -- define command-line tools, try your best to maintain OSX compatibility
    local wc = 'wc'
    local cut = 'cut'
-   local find = 'find'
+   local find = 'find -L' -- -L is necessary when the subfolders themselves are symlinks
    if ffi.os == 'OSX' then
       wc = 'gwc'
       cut = 'gcut'
