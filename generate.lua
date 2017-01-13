@@ -20,6 +20,11 @@ if opt.display == 0 then opt.display = false end
 
 assert(net ~= '', 'provide a generator model')
 
+if opt.gpu > 0 then
+    require 'cunn'
+    require 'cudnn'
+end
+
 noise = torch.Tensor(opt.batchSize, opt.nz, opt.imsize, opt.imsize)
 net = torch.load(opt.net)
 
@@ -66,8 +71,6 @@ end
 
 local sample_input = torch.randn(2,100,1,1)
 if opt.gpu > 0 then
-    require 'cunn'
-    require 'cudnn'
     net:cuda()
     cudnn.convert(net, cudnn)
     noise = noise:cuda()
