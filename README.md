@@ -149,7 +149,7 @@ gpu=1 net=[checkpoint-path] th generate.lua
 - for faces (celeb-A dataset): [celebA_25_net_G.t7](https://github.com/soumith/lfs/raw/master/dcgan.torch/celebA_25_net_G.t7)
 - for bedrooms (LSUN dataset): [bedrooms_4_net_G.t7](https://github.com/soumith/lfs/raw/master/dcgan.torch/bedrooms_4_net_G.t7)
 
-##2.1. Generate samples of 64x64 pixels
+## 2.1. Generate samples of 64x64 pixels
 ```bash
 gpu=0 batchSize=64 net=celebA_25_net_G.t7 th generate.lua
 ```
@@ -160,7 +160,7 @@ the image will be shown there. The image is also saved to `generation1.png` in t
 ![faces_pregen](images/faces_pregen.png "generated faces using pre-trained network")
 
 
-##2.2. Generate large artsy images (tried up to 4096 x 4096 pixels)
+## 2.2. Generate large artsy images (tried up to 4096 x 4096 pixels)
 ```bash
 gpu=0 batchSize=1 imsize=10 noisemode=linefull net=bedrooms_4_net_G.t7 th generate.lua
 ```
@@ -170,7 +170,7 @@ Larger the imsize, larger the output image.
 
 ![line2d_pregen](images/line2d_pregen.png "generated line2d using pre-trained network")
 
-##2.3. Walk in the space of samples
+## 2.3. Walk in the space of samples
 ```bash
 gpu=0 batchSize=16 noisemode=line net=bedrooms_4_net_G.t7 th generate.lua
 ```
