@@ -130,6 +130,7 @@ DATA_ROOT=[PATH_TO_IMAGENET]/train dataset=folder th main.lua
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'experiment1',
    noise = 'normal',       -- uniform / normal
+   epoch_save_modulo = 1,  -- save checkpoint ever # of epoch
 ```
 
 # 2. Use a pre-trained generator to generate images.
