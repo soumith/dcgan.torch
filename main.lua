@@ -20,6 +20,7 @@ opt = {
    gpu = 1,                -- gpu = 0 is CPU mode. gpu=X is GPU mode on GPU X
    name = 'experiment1',
    noise = 'normal',       -- uniform / normal
+   epoch_save_modulo = 1;
 }
 
 -- one-line argument parser. parses enviroment variables to override the defaults
@@ -55,6 +56,9 @@ local ndf = opt.ndf
 local ngf = opt.ngf
 local real_label = 1
 local fake_label = 0
+
+local epoch_save_modulo = opt.epoch_save_modulo
+print("modulo value: ", opt.epoch_save_modulo);
 
 local SpatialBatchNormalization = nn.SpatialBatchNormalization
 local SpatialConvolution = nn.SpatialConvolution
@@ -237,10 +241,12 @@ for epoch = 1, opt.niter do
    paths.mkdir('checkpoints')
    parametersD, gradParametersD = nil, nil -- nil them to avoid spiking memory
    parametersG, gradParametersG = nil, nil
-   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG:clearState())
-   torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD:clearState())
-   parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
-   parametersG, gradParametersG = netG:getParameters()
-   print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
-            epoch, opt.niter, epoch_tm:time().real))
+   if epoch % epoch_save_modulo == 0 then -- allows to pass in modulo value to only save checkpoints at certain intervals
+      torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG:clearState())
+      torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD:clearState())
+    end
+      parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
+      parametersG, gradParametersG = netG:getParameters()
+      print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
+               epoch, opt.niter, epoch_tm:time().real))
 end
