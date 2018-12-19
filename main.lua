@@ -243,6 +243,7 @@ for epoch = 1, opt.niter do
    if epoch % epoch_save_modulo == 0 then -- allows to pass in modulo value to only save checkpoints at certain intervals
       torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_G.t7', netG:clearState())
       torch.save('checkpoints/' .. opt.name .. '_' .. epoch .. '_net_D.t7', netD:clearState())
+    end
       parametersD, gradParametersD = netD:getParameters() -- reflatten the params and get them
       parametersG, gradParametersG = netG:getParameters()
       print(('End of epoch %d / %d \t Time Taken: %.3f'):format(
