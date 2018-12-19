@@ -34,8 +34,6 @@ torch.manualSeed(opt.manualSeed)
 torch.setnumthreads(1)
 torch.setdefaulttensortype('torch.FloatTensor')
 
-print("modulo value: ", opt.epoch_save_modulo);
-
 -- create data loader
 local DataLoader = paths.dofile('data/data.lua')
 local data = DataLoader.new(opt.nThreads, opt.dataset, opt)
@@ -58,6 +56,9 @@ local ndf = opt.ndf
 local ngf = opt.ngf
 local real_label = 1
 local fake_label = 0
+
+local epoch_save_modulo = opt.epoch_save_modulo
+print("modulo value: ", opt.epoch_save_modulo);
 
 local SpatialBatchNormalization = nn.SpatialBatchNormalization
 local SpatialConvolution = nn.SpatialConvolution
